@@ -14,6 +14,7 @@ class MyWindow(QMainWindow):
         uic.loadUi('main.ui',self)
         self.con = sqlite3.connect("films.db")
         self.cur = self.con.cursor()
+        self.find1.clicked.connect(self.param)
         self.find2.clicked.connect(self.search)
         title = ('ID','Название','Год','Продолжительность')
         self.tableWidget.setColumnCount(len(title))
@@ -51,46 +52,39 @@ class MyWindow(QMainWindow):
         self.con.commit()
 
     #поиск по названию
-    def find_name(self):
+    def search(self):
         name = self.name.toPlainText()
         self.data = self.cur.execute(f'SELECT * FROM Films WHERE Title LIKE \'%{name}%\'').fetchmany(100)
         self.show_data()
 
     #поиск по параметрам
-    def search(self):
-        name = self.name.toPlainText()
-        param = True
-        if name:
-            self.data = self.cur.execute(f'SELECT * FROM Films WHERE Title LIKE \'%{name}%\'').fetchmany(200)
+    def param(self):
         time = self.time.toPlainText().isnumeric()
         year = self.year.toPlainText().isnumeric()
-        if not time or not year:
-            param = False
-        if param:
-            f = self.combo.currentText()
-            reguest = ''
-            if f == 'не выбрано':
-                reguest = 'SELECT * FROM Films'
-                if time or year:
-                    reguest += " WHERE "
-                if time:
-                    txt = self.time.toPlainText()
-                    reguest += f'duration = \'{txt}\''
-                if time and year:
-                    reguest += " AND "
-                if year:
-                    txt = self.year.toPlainText()
-                    reguest += f'year = \'{txt}\''
-            else:
-                ID = self.cur.execute(f'SELECT * FROM Genres WHERE title = \'{f}\'').fetchall()
-                reguest = f'SELECT * FROM Films WHERE genre = \'{ID[0][0]}\''
-                if time:
-                    txt = self.time.toPlainText()
-                    reguest += f' AND duration = \'{txt}\''
-                if year:
-                    txt = self.year.toPlainText()
-                    reguest += f' AND year = \'{txt}\''
-            self.data = self.cur.execute(reguest).fetchmany(100)
+        f = self.combo.currentText()
+        reguest = ''
+        if f == 'не выбрано':
+            reguest = 'SELECT * FROM Films'
+            if time or year:
+                reguest += " WHERE "
+            if time:
+                txt = self.time.toPlainText()
+                reguest += f'duration = \'{txt}\''
+            if time and year:
+                reguest += " AND "
+            if year:
+                txt = self.year.toPlainText()
+                reguest += f'year = \'{txt}\''
+        else:
+            ID = self.cur.execute(f'SELECT * FROM Genres WHERE title = \'{f}\'').fetchall()
+            reguest = f'SELECT * FROM Films WHERE genre = \'{ID[0][0]}\''
+            if time:
+                txt = self.time.toPlainText()
+                reguest += f' AND duration = \'{txt}\''
+            if year:
+                txt = self.year.toPlainText()
+                reguest += f' AND year = \'{txt}\''
+        self.data = self.cur.execute(reguest).fetchmany(100)
         self.show_data()
 
     #показ базы данных
